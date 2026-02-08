@@ -98,7 +98,7 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
         }
 
         try {
-            const url = crew ? `${import.meta.env.VITE_API_URL}/crews/${crew.id}` : '${import.meta.env.VITE_API_URL}/crews'
+            const url = crew ? `${import.meta.env.VITE_API_URL}/crews/${crew.id}` : `${import.meta.env.VITE_API_URL}/crews`
             const method = crew ? 'PATCH' : 'POST'
 
             const res = await fetch(url, {
