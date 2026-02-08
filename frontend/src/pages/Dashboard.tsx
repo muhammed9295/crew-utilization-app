@@ -31,7 +31,7 @@ export default function Dashboard() {
                 if (date?.from) params.append('startDate', format(date.from, 'yyyy-MM-dd'))
                 if (date?.to) params.append('endDate', format(date.to, 'yyyy-MM-dd'))
 
-                const res = await fetch(`http://localhost:3000/daily-logs/stats?${params.toString()}`)
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/daily-logs/stats?${params.toString()}`)
                 if (!res.ok) throw new Error('Failed to fetch stats')
                 const data = await res.json()
                 setStats(data)

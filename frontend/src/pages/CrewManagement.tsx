@@ -21,8 +21,8 @@ export default function CrewManagement() {
     const fetchData = useCallback(async () => {
         try {
             const [crewsRes, zonesRes] = await Promise.all([
-                fetch('http://localhost:3000/crews'),
-                fetch('http://localhost:3000/zones')
+                fetch(`${import.meta.env.VITE_API_URL}/crews`),
+                fetch(`${import.meta.env.VITE_API_URL}/zones`)
             ])
 
             const crewsData = await crewsRes.json()

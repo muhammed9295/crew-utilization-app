@@ -39,7 +39,7 @@ export default function AllLogEntries() {
     useEffect(() => {
         const fetchZones = async () => {
             try {
-                const res = await fetch('http://localhost:3000/zones')
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/zones`)
                 const data = await res.json()
                 setZones(data)
             } catch (err) {
@@ -71,7 +71,7 @@ export default function AllLogEntries() {
                 params.append('zoneId', selectedZone)
             }
 
-            const res = await fetch(`http://localhost:3000/daily-logs?${params.toString()}`)
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/daily-logs?${params.toString()}`)
             if (!res.ok) throw new Error('Failed to fetch logs')
 
             const { data, total } = await res.json()

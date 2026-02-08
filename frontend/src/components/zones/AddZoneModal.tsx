@@ -58,7 +58,7 @@ export function AddZoneModal({ children, zone, onSave }: AddZoneModalProps) {
         }
 
         try {
-            const url = zone ? `http://localhost:3000/zones/${zone.id}` : 'http://localhost:3000/zones'
+            const url = zone ? `${import.meta.env.VITE_API_URL}/zones/${zone.id}` : `${import.meta.env.VITE_API_URL}/zones`
             const method = zone ? 'PATCH' : 'POST'
 
             const res = await fetch(url, {

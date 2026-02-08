@@ -40,7 +40,7 @@ interface ZoneTableProps {
 export function ZoneTable({ zones, crews, onZoneUpdated }: ZoneTableProps) {
     const handleDelete = async (id: string) => {
         try {
-            await fetch(`http://localhost:3000/zones/${id}`, {
+            await fetch(`${import.meta.env.VITE_API_URL}/zones/${id}`, {
                 method: 'DELETE'
             })
             toast.success("Zone deleted successfully")

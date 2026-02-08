@@ -48,7 +48,7 @@ export function CrewTable({ crews, onDataChange }: CrewTableProps) {
 
     const handleDelete = async (id: string) => {
         try {
-            const response = await fetch(`http://localhost:3000/crews/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/crews/${id}`, {
                 method: 'DELETE',
             })
 

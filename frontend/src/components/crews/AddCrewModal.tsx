@@ -49,7 +49,7 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
     // Fetch Zones
     useEffect(() => {
         if (open) {
-            fetch('http://localhost:3000/zones')
+            fetch(`${import.meta.env.VITE_API_URL}/zones`)
                 .then(res => res.json())
                 .then(data => setZones(data))
                 .catch(err => console.error("Failed to fetch zones", err))
@@ -98,7 +98,7 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
         }
 
         try {
-            const url = crew ? `http://localhost:3000/crews/${crew.id}` : 'http://localhost:3000/crews'
+            const url = crew ? `${import.meta.env.VITE_API_URL}/crews/${crew.id}` : '${import.meta.env.VITE_API_URL}/crews'
             const method = crew ? 'PATCH' : 'POST'
 
             const res = await fetch(url, {

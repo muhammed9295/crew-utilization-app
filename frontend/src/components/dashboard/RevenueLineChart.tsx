@@ -33,7 +33,7 @@ export function RevenueLineChart() {
     useEffect(() => {
         const fetchRevenue = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/daily-logs/revenue?year=${year}`)
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/daily-logs/revenue?year=${year}`)
                 if (!res.ok) throw new Error('Failed to fetch revenue')
                 const data = await res.json()
                 setRevenueData(data.monthlyRevenue)

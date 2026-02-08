@@ -27,8 +27,8 @@ export default function DailyLogEntry() {
             setLoading(true)
             try {
                 const [crewsRes, zonesRes] = await Promise.all([
-                    fetch('http://localhost:3000/crews'),
-                    fetch('http://localhost:3000/zones')
+                    fetch(`${import.meta.env.VITE_API_URL}/crews`),
+                    fetch(`${import.meta.env.VITE_API_URL}/zones`)
                 ])
                 setZones(await zonesRes.json())
                 setCrews(await crewsRes.json())
@@ -49,7 +49,7 @@ export default function DailyLogEntry() {
             try {
                 const dateStr = format(date, 'yyyy-MM-dd')
                 // Using a large limit to get all logs for the daily entry view
-                const res = await fetch(`http://localhost:3000/daily-logs?date=${dateStr}&limit=1000`)
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/daily-logs?date=${dateStr}&limit=1000`)
                 const { data } = await res.json()
                 setAllLogsForDate(data || [])
 
@@ -171,7 +171,7 @@ export default function DailyLogEntry() {
 
         setSaving(true)
         try {
-            const res = await fetch('http://localhost:3000/daily-logs', {
+            const res = await fetch('${import.meta.env.VITE_API_URL}/daily-logs', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(logsToSave)

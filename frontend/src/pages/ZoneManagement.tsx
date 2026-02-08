@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { ZoneStats } from "@/components/zones/ZoneStats"
 import { ZoneFilters } from "@/components/zones/ZoneFilters"
 import { ZoneTable } from "@/components/zones/ZoneTable"
 import { AddZoneModal } from "@/components/zones/AddZoneModal"
@@ -22,8 +21,8 @@ export default function ZoneManagement() {
     const fetchData = useCallback(async () => {
         try {
             const [zonesRes, crewsRes] = await Promise.all([
-                fetch('http://localhost:3000/zones'),
-                fetch('http://localhost:3000/crews')
+                fetch(`${import.meta.env.VITE_API_URL}/zones`),
+                fetch(`${import.meta.env.VITE_API_URL}/crews`)
             ])
 
             const zonesData = await zonesRes.json()
