@@ -42,7 +42,7 @@ export const menuItems: MenuItem[] = [
         href: "/all-logs",
     },
     {
-        label: "User Management",
+        label: "Users",
         icon: Shield,
         href: "/users",
         role: UserRole.SUPER_ADMIN

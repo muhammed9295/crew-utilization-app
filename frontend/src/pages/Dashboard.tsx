@@ -93,7 +93,6 @@ export default function Dashboard() {
                 <StatCard
                     title="Total Crew"
                     value={stats.totalCrew}
-                    className="bg-neutral-900 text-white dark:bg-neutral-800 border-neutral-800"
                 />
 
                 <StatCard
