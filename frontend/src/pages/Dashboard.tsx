@@ -91,21 +91,25 @@ export default function Dashboard() {
                 <StatCard
                     title="Total Crew"
                     value={stats.totalCrew}
+                    valueClassName="text-2xl"
                 />
 
                 <StatCard
                     title="Total Revenue"
-                    value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR' }).format(stats.totalRevenue || 0)}
+                    value={new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(stats.totalRevenue || 0)}
+                    valueClassName="text-2xl"
                 />
 
                 <StatCard
                     title="Utilization Rate"
                     value={`${stats.utilizationRate}%`}
+                    valueClassName="text-2xl"
                 />
 
                 <StatCard
                     title="Total Zones"
                     value={stats.totalZones}
+                    valueClassName="text-2xl"
                 />
             </div>
 

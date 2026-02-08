@@ -11,10 +11,11 @@ interface StatCardProps {
     icon?: React.ReactNode
     children?: React.ReactNode
     className?: string
+    valueClassName?: string
 }
 
 // StatCard.tsx
-export function StatCard({ title, value, change, changeLabel, trend, icon, children, className }: StatCardProps) {
+export function StatCard({ title, value, change, changeLabel, trend, icon, children, className, valueClassName }: StatCardProps) {
     const isDark = className?.includes("bg-neutral-900");
 
     return (
@@ -27,7 +28,7 @@ export function StatCard({ title, value, change, changeLabel, trend, icon, child
                 {children}
             </CardHeader>
             <CardContent>
-                <div className="text-4xl font-bold">{value}</div>
+                <div className={cn("text-4xl font-bold", valueClassName)}>{value}</div>
                 {(change || changeLabel) && (
                     <p className="text-xs flex items-center mt-2">
                         {trend === "up" && <TrendingUp className="mr-1 h-3 w-3 text-green-500" />}
