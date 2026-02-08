@@ -25,7 +25,22 @@ export class DailyLogsService {
             .select('COUNT(DISTINCT daily_log.crewId)', 'count');
 
         // Calculate days in range for scheduled hours
-        let daysInRange = 1;
+        // Helper to count working days (Sun, Mon, Tue, Wed, Thu, Sat) - Excluding Friday (5)
+        const getWorkingDaysInRange = (start: Date, end: Date) => {
+            let count = 0;
+            const curDate = new Date(start.getTime());
+            while (curDate <= end) {
+                const dayOfWeek = curDate.getDay();
+                if (dayOfWeek !== 5) { // 5 is Friday
+                    count++;
+                }
+                curDate.setDate(curDate.getDate() + 1);
+            }
+            return count;
+        };
+
+        let daysInRange = 0;
+        let workingDays = 0;
 
         // Helper to get YYYY-MM-DD from a date object (local time)
         const toISODate = (d: Date) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -39,25 +54,43 @@ export class DailyLogsService {
             // If effective end date is BEFORE start date, then range is 0 (or invalid)
             if (effectiveEndDate < startDate) {
                 daysInRange = 0;
+                workingDays = 0;
             } else {
                 // Parse as UTC to avoid timezone/DST offsets when diffing
+                // We use UTC to ensure we iterate correctly over calendar days
                 const start = new Date(startDate + 'T00:00:00Z');
                 const end = new Date(effectiveEndDate + 'T00:00:00Z');
+
+                // Calculate simple days in range (for reference if needed, but critical is workingDays)
                 const diffTime = Math.abs(end.getTime() - start.getTime());
                 daysInRange = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                // Calculate working days
+                workingDays = getWorkingDaysInRange(start, end);
             }
 
-            // We still query logs based on the originally requested range? 
-            // The worked hours query uses startDate/endDate. 
-            // If we cap capacity, should we cap the log query? 
-            // Future logs shouldn't exist ideally. But strictness suggests we might want to stay consistent.
-            // But let's stick to the capacity fix first.
             activeCrewsQuery.where('daily_log.date BETWEEN :startDate AND :endDate', { startDate, endDate });
         } else if (startDate) {
-            // ... (keep existing logic or usage)
+            // Case: Just startDate provided (e.g. from today onwards? or specific day? logic was ambiguous in original code)
+            // Assuming simplified logic: if generic range, we default to last 30 days
             activeCrewsQuery.where('daily_log.date >= :startDate', { startDate });
+            // Fallback for startDate only not fully implemented in original regarding daysInRange, keeping safe default or calc
+            // If this path is used for "Today", startDate == todayStr
+            if (startDate === todayStr) {
+                const d = new Date(startDate + 'T00:00:00Z');
+                workingDays = d.getDay() !== 5 ? 1 : 0;
+            }
         } else {
-            daysInRange = 30;
+            // Default 30 days
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - 30);
+
+            // Re-align to midnight UTC for consistent counting
+            const uStart = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()));
+            const uEnd = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()));
+
+            workingDays = getWorkingDaysInRange(uStart, uEnd);
         }
 
         const activeCrewsResult = await activeCrewsQuery.getRawOne();
@@ -65,14 +98,14 @@ export class DailyLogsService {
 
         // 3. Utilization Rate = (Total worked hours / Total scheduled hours) * 100
 
-        // Total Scheduled Hours = Sum of (Crew.scheduledHours) * DaysInRange
-        // We only consider Active crews for capacity? Usually yes.
+        // Total Scheduled Hours = Sum of (Crew.scheduledHours) * workingDays
         const { totalDailyScheduled } = await this.crewRepository.createQueryBuilder('crew')
             .select('SUM(crew.scheduledHours)', 'totalDailyScheduled')
             .where('crew.status = :status', { status: 'Active' })
             .getRawOne();
 
-        const totalScheduledHours = (parseFloat(totalDailyScheduled) || 0) * daysInRange;
+        // Use workingDays instead of generic daysInRange
+        const totalScheduledHours = (parseFloat(totalDailyScheduled) || 0) * workingDays;
 
         // Total Worked Hours
         const workedHoursQuery = this.dailyLogsRepository.createQueryBuilder('daily_log')
@@ -96,7 +129,7 @@ export class DailyLogsService {
 
         // 5. Crew Allocation & Zone Utilization
         // We need: Zone Name, Technician Count, Cleaner Count, AND Zone Utilization
-        // Zone Utilization = (Sum Worked Hours in Zone / (Sum Scheduled Hours of Crews in Zone * Days)) * 100
+        // Zone Utilization = (Sum Worked Hours in Zone / (Sum Scheduled Hours of Crews in Zone * workingDays)) * 100
 
         const zoneAllocationQuery = this.crewRepository.createQueryBuilder('crew')
             .leftJoin('crew.zone', 'zone')
@@ -165,13 +198,15 @@ export class DailyLogsService {
             const workedData = workedHoursMap.get(zone.zoneId) || { total: 0, technician: 0, cleaner: 0 };
             const worked = workedData.total;
             const dailyCapacity = parseFloat(zone.zoneDailyCapacity) || 0;
-            const totalCapacity = dailyCapacity * daysInRange;
+            // Use workingDays here instead of daysInRange
+            const totalCapacity = dailyCapacity * workingDays;
 
             // Role specific
             const techDailyCap = parseFloat(zone.technicianDailyCapacity) || 0;
             const cleanerDailyCap = parseFloat(zone.cleanerDailyCapacity) || 0;
-            const techTotalCap = techDailyCap * daysInRange;
-            const cleanerTotalCap = cleanerDailyCap * daysInRange;
+            // Use workingDays here
+            const techTotalCap = techDailyCap * workingDays;
+            const cleanerTotalCap = cleanerDailyCap * workingDays;
 
             const utilization = totalCapacity > 0
                 ? Math.round((worked / totalCapacity) * 100)
