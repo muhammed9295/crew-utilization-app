@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns"
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { toast } from "sonner"
 import { StatCard } from "@/components/shared/StatCard"
@@ -22,12 +22,10 @@ export default function Dashboard() {
         totalZones: 0,
         zoneAllocation: []
     })
-    const [loading, setLoading] = useState(false)
     const [activeTab, setActiveTab] = useState("day")
 
     useEffect(() => {
         const fetchStats = async () => {
-            setLoading(true)
             try {
                 const params = new URLSearchParams()
                 if (date?.from) params.append('startDate', format(date.from, 'yyyy-MM-dd'))
@@ -40,8 +38,6 @@ export default function Dashboard() {
             } catch (err) {
                 console.error("Failed to fetch dashboard stats", err)
                 toast.error("Failed to load dashboard statistics")
-            } finally {
-                setLoading(false)
             }
         }
 
