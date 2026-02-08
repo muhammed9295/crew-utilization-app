@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns"
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { toast } from "sonner"
 import { StatCard } from "@/components/shared/StatCard"
@@ -18,6 +18,7 @@ export default function Dashboard() {
     const [stats, setStats] = useState({
         totalCrew: 0,
         activeCrews: 0,
+        totalRevenue: 0,
         utilizationRate: 0,
         totalZones: 0,
         zoneAllocation: []
@@ -55,7 +56,8 @@ export default function Dashboard() {
                 setDate({ from: today, to: today })
                 break
             case "week":
-                setDate({ from: startOfWeek(today), to: endOfWeek(today) })
+                // Show previous week from current date (inclusive of today)
+                setDate({ from: subDays(today, 6), to: today })
                 break
             case "month":
                 setDate({ from: startOfMonth(today), to: endOfMonth(today) })
@@ -92,8 +94,8 @@ export default function Dashboard() {
                 />
 
                 <StatCard
-                    title="Active Crews"
-                    value={stats.activeCrews}
+                    title="Total Revenue"
+                    value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR' }).format(stats.totalRevenue || 0)}
                 />
 
                 <StatCard

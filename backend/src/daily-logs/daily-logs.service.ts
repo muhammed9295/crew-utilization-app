@@ -124,6 +124,20 @@ export class DailyLogsService {
             ? Math.round((totalWorkedHours / totalScheduledHours) * 100)
             : 0;
 
+        // 3.5 Total Revenue
+        const revenueQuery = this.dailyLogsRepository.createQueryBuilder('daily_log')
+            .select('SUM(daily_log.totalRevenue)', 'revenue_sum');
+
+        if (startDate && endDate) {
+            revenueQuery.where('daily_log.date BETWEEN :startDate AND :endDate', { startDate, endDate });
+        } else if (startDate) {
+            revenueQuery.where('daily_log.date >= :startDate', { startDate });
+        }
+
+        const revenueResult = await revenueQuery.getRawOne();
+        console.log('[DEBUG] Revenue Result:', revenueResult);
+        const revenue = revenueResult && revenueResult.revenue_sum ? parseFloat(revenueResult.revenue_sum) : 0;
+
         // 4. Total Zones
         const totalZones = await this.zoneRepository.count();
 
@@ -235,6 +249,7 @@ export class DailyLogsService {
             totalCrew,
             activeCrews,
             utilizationRate,
+            totalRevenue: revenue,
             totalZones,
             zoneAllocation
         };
