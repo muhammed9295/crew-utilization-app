@@ -8,7 +8,7 @@ export interface Zone {
     utilization?: number;
 }
 
-export type CrewRole = "Technician" | "Cleaner";
+export type CrewRole = "Technician" | "Cleaner" | "Car Washer" | (string & {});
 export type CrewStatus = "Active" | "Inactive" | "On Leave" | "Maintenance";
 
 export interface Crew {

@@ -23,8 +23,9 @@ export class DailyLogsService implements OnModuleInit {
     }
 
     async getDashboardStats(startDate?: string, endDate?: string) {
-        // 1. Total Crews (Current Db State)
+        // 1. Total & Active Crews (Current Db State)
         const totalCrew = await this.crewRepository.count();
+        const activeCrews = await this.crewRepository.count({ where: { status: 'Active' } });
 
         // Helper to get working days (if needed for theoretical capacity, but with snapshots we imply logged capacity)
         // Leaving it for partial logic if we mix strategies, but ideally we rely on snapshots.
@@ -61,7 +62,6 @@ export class DailyLogsService implements OnModuleInit {
         const statsResults = await statsQuery.getRawMany();
 
         // Global Totals from aggregation
-        let activeCrews = 0;
         let totalRevenue = 0;
         let globalWorked = 0;
         let globalScheduled = 0;
@@ -78,8 +78,6 @@ export class DailyLogsService implements OnModuleInit {
             totalRevenue += logRevenue;
             globalWorked += logWorked;
             globalScheduled += logScheduled;
-            // activeCrews sum from groups might overlap if crew moved zones? 
-            // Querying global distinct active crews directly is safer for the top-level metric.
 
             zoneStatsMap.set(zoneId, {
                 activeCrewCount: logActive, // Heads active in this zone
@@ -92,18 +90,6 @@ export class DailyLogsService implements OnModuleInit {
                 cleanerScheduled: parseFloat(row.cleanerScheduled) || 0
             });
         });
-
-        // Re-query global active crews to avoid duplicates if a crew worked in multiple zones
-        const globalActiveQuery = this.dailyLogsRepository.createQueryBuilder('daily_log')
-            .select('COUNT(DISTINCT daily_log.crewId)', 'count');
-
-        if (startDate && endDate) {
-            globalActiveQuery.where('daily_log.date BETWEEN :startDate AND :endDate', { startDate, endDate });
-        } else if (startDate) {
-            globalActiveQuery.where('daily_log.date >= :startDate', { startDate });
-        }
-        const globalActiveRes = await globalActiveQuery.getRawOne();
-        activeCrews = parseInt(globalActiveRes.count, 10) || 0;
 
         // Utilization
         const utilizationRate = globalScheduled > 0

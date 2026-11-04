@@ -67,6 +67,7 @@ export function CrewFilters({
                         <SelectItem value="all">All Roles</SelectItem>
                         <SelectItem value="technician">Technician</SelectItem>
                         <SelectItem value="cleaner">Cleaner</SelectItem>
+                        <SelectItem value="car washer">Car Washer</SelectItem>
                     </SelectContent>
                 </Select>
 

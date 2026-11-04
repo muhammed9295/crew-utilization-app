@@ -34,10 +34,16 @@ interface AddCrewModalProps {
     onSave?: () => void
 }
 
+const DEFAULT_ROLES = ["Technician", "Cleaner", "Car Washer"]
+const CUSTOM_ROLES_STORAGE_KEY = "crew_custom_roles"
+
 export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [role, setRole] = useState("")
+    const [roles, setRoles] = useState<string[]>(DEFAULT_ROLES)
+    const [isAddingRole, setIsAddingRole] = useState(false)
+    const [newRoleName, setNewRoleName] = useState("")
     const [date, setDate] = useState<Date>()
     const [zoneId, setZoneId] = useState("")
     const [status, setStatus] = useState("Active")
@@ -45,6 +51,19 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
     const [open, setOpen] = useState(false)
     const [zones, setZones] = useState<Zone[]>([])
     const [loading, setLoading] = useState(false)
+
+    // Load saved custom roles
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(CUSTOM_ROLES_STORAGE_KEY)
+            if (saved) {
+                const parsed: string[] = JSON.parse(saved)
+                setRoles(Array.from(new Set([...DEFAULT_ROLES, ...parsed])))
+            }
+        } catch (e) {
+            console.error("Failed to load custom roles", e)
+        }
+    }, [open])
 
     // Fetch Zones
     useEffect(() => {
@@ -62,6 +81,9 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
             setFirstName(crew.firstName)
             setLastName(crew.lastName)
             setRole(crew.role)
+            if (crew.role) {
+                setRoles(prev => Array.from(new Set([...prev, crew.role])))
+            }
             try {
                 setDate(new Date(crew.dateOfJoining))
             } catch (e) {
@@ -70,6 +92,8 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
             setZoneId(crew.zone?.id || "")
             setStatus(crew.status)
             setScheduledHours(String(crew.scheduledHours || "8"))
+            setIsAddingRole(false)
+            setNewRoleName("")
         } else if (!crew && open) {
             setFirstName("")
             setLastName("")
@@ -78,8 +102,37 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
             setZoneId("")
             setStatus("Active")
             setScheduledHours("8")
+            setIsAddingRole(false)
+            setNewRoleName("")
         }
     }, [crew, open])
+
+    const handleRoleSelectChange = (value: string) => {
+        if (value === "__add_more_role__") {
+            setIsAddingRole(true)
+        } else {
+            setRole(value)
+            setIsAddingRole(false)
+        }
+    }
+
+    const handleSaveNewRole = () => {
+        const trimmed = newRoleName.trim()
+        if (!trimmed) return
+
+        const updatedRoles = Array.from(new Set([...roles, trimmed]))
+        setRoles(updatedRoles)
+        setRole(trimmed)
+        setNewRoleName("")
+        setIsAddingRole(false)
+
+        try {
+            const customRoles = updatedRoles.filter(r => !DEFAULT_ROLES.includes(r))
+            localStorage.setItem(CUSTOM_ROLES_STORAGE_KEY, JSON.stringify(customRoles))
+        } catch (e) {
+            console.error("Failed to save custom role", e)
+        }
+    }
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -160,15 +213,44 @@ export function AddCrewModal({ children, crew, onSave }: AddCrewModalProps) {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="role">Role</Label>
-                        <Select onValueChange={setRole} value={role} required>
+                        <Select onValueChange={handleRoleSelectChange} value={role} required>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Technician">Technician</SelectItem>
-                                <SelectItem value="Cleaner">Cleaner</SelectItem>
+                                {roles.map((r) => (
+                                    <SelectItem key={r} value={r}>
+                                        {r}
+                                    </SelectItem>
+                                ))}
+                                <SelectItem value="__add_more_role__" className="text-[#011f5f] font-medium">
+                                    + Add More Role
+                                </SelectItem>
                             </SelectContent>
                         </Select>
+                        {isAddingRole && (
+                            <div className="flex items-center gap-2 mt-1">
+                                <Input
+                                    placeholder="Enter new role"
+                                    value={newRoleName}
+                                    onChange={(e) => setNewRoleName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault()
+                                            handleSaveNewRole()
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                                <Button
+                                    type="button"
+                                    onClick={handleSaveNewRole}
+                                    className="bg-[#011f5f] hover:bg-[#022a80] shrink-0"
+                                >
+                                    Save
+                                </Button>
+                            </div>
+                        )}
                     </div>
                     <div className="grid gap-2">
                         <Label>Date of Joining</Label>

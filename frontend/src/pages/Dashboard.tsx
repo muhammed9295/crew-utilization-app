@@ -89,8 +89,8 @@ export default function Dashboard() {
             {/* ... Stat Cards ... */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
                 <StatCard
-                    title="Total Crew"
-                    value={stats.totalCrew}
+                    title="Active Crew"
+                    value={stats.activeCrews}
                     valueClassName="text-2xl"
                 />
 
